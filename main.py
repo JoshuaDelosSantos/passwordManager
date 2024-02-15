@@ -36,6 +36,11 @@ def handle_login():
     pass
 
 
+def get_password():
+    """Get a password from the user."""
+    pass
+
+
 def generate_random_password():
     # Define character sets
     uppercase_letters = string.ascii_uppercase
