@@ -12,4 +12,4 @@ class User:
 
     def __str__(self):
         """Return string representation of user_name and user password."""
-        return f"{self.user_name},{self.salt},{self.hash_code}"
+        return f"User name:{self.user_name} | Salt:{self.salt} | Hash:{self.hash_code}"
