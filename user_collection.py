@@ -2,7 +2,7 @@
 UserCollection class that stores user data in a list.
 """
 
-import json
+import csv
 from user import User
 
 
@@ -27,15 +27,16 @@ class UserCollection:
         """Removes a user from users."""
         self.users.remove(user)
 
-    def load_songs(self, filename='songs.json'):
-        """Load songs from JSON file."""
+    def load_users(self, filename='users.csv'):
+        """Load users from file."""
         with open(filename, 'r', encoding='utf-8') as in_file:
-            data = json.load(in_file)
+            reader = csv.reader(in_file)
+            for row in reader:
+                self.add_user(User(*row[:3]))
 
-        for datum in data:
-            self.add_user(User(**datum))
-
-    def save_users(self, filename="users_data.json"):
-        """Saves users to a file."""
-        with open(filename, "w", encoding='utf-8') as out_file:
-            print(json.dumps(self.users, default=vars), file=out_file)
+    def save_users(self, filename='users.csv'):
+        """Save users to CSV file."""
+        with open(filename, 'w', encoding='utf-8', newline='') as out_file:
+            writer = csv.writer(out_file)
+            for user in self.users:
+                writer.writerow([user.user_name, user.salt, user.hash_code])
