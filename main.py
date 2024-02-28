@@ -7,6 +7,7 @@ from user_collection import UserCollection
 import string
 import random
 import bcrypt
+import getpass
 
 MENU = "(R)egister\n(L)ogin\n(Q)uit"
 USERS = UserCollection()
@@ -16,36 +17,41 @@ SPECIAL_CHARACTERS = "!@#$%^&*()_-=+`~,./'[]<>?{}|\\"
 def main():
     """Run the main program simulating a user authentication environment and a password."""
 
-    print("Welcome to the password manager program")
+    print("Welcome")
     print(MENU)
-    choice = input(">>>")
-    while choice.upper() != "Q":
+    USERS.load_users()
+    choice = input(">>>").upper()
+    while choice != "Q":
         if choice == "R":
             handle_register()
         elif choice == "L":
             handle_login()
         else:
             print("Invalid input. Try again.")
-        choice = input(">>>")
+        print(MENU)
+        choice = input(">>>").upper()
 
     print("Fin.")
 
 
 def handle_register():
     """Register a new user and their password"""
+
     menu = "(G)enerate random password\n(U)se own"
+
     user_name = get_valid_user_name()
     print(menu)
-    choice = input(">>>")
+    choice = input(">>>").upper()
     if choice == "G":
         password = generate_random_password()
         hashed_password, salt = hash_password(password)
     else:
-        password = input("> ")
+        password = getpass.getpass("Enter password: ")
         while not is_valid_password(password):
             print("Invalid password!")
-            password = input("> ")
+            password = input("Password > ")
         hashed_password, salt = hash_password(password)
+
     USERS.add_user(User(user_name, salt, hashed_password))
 
 
@@ -54,20 +60,36 @@ def get_valid_user_name():
     is_valid_user_name = False
 
     while not is_valid_user_name:
-        user_name = input("Enter a user name: ")
+        user_name = input("User name > ")
         if user_name == "":
             print("Invalid input. Try again.")
         elif user_name in [user.user_name for user in USERS.users]:
             print("User name already taken. Try again.")
         else:
             is_valid_user_name = True
-        user_name = input("Enter a user name: ")
+
         return user_name
 
 
 def handle_login():
     """Log user into the system."""
-    pass
+    user_name = input("Enter user name: ")
+
+    # Check if the entered username exists in the user collection
+    if user_name not in [user.user_name for user in USERS.users]:
+        print("User name not found")
+    else:
+        password = getpass.getpass("Enter password: ")
+        hashed_password, salt = hash_password(password)
+
+        # Find the user with the entered username
+        user = next(user for user in USERS.users if user.user_name == user_name)
+
+        # Check if the entered password matches the stored hashed password
+        if check_password(password, user.hash_code, user.salt):
+            print("Login successful!")
+        else:
+            print("Incorrect password")
 
 
 def is_valid_password(password):
@@ -145,18 +167,28 @@ def hash_password(password):
     return hashed_password, salt
 
 
+def check_password(entered_password, stored_hashed_password, salt):
+    """Check if the entered password is correct."""
+    # Hash the entered password with the stored salt
+    hashed_entered_password = bcrypt.hashpw(entered_password.encode('utf-8'), salt)
+
+    # Compare the stored hashed password with the newly hashed entered password
+    return hashed_entered_password == stored_hashed_password
+
+
 def run_tests():
-    print("TEST Random generated password")
-    p1 = generate_random_password()
-    print(p1)
+    """Test codes."""
+    # print("TEST Random generated password")
+    # p1 = generate_random_password()
+    # print(p1)
+    #
+    # print("TEST hashing a password")
+    # p2, salt = hash_password(p1)
+    # print(f"Hashed password: {p2}\nSalt: {salt}")
 
-    print("TEST hasing a password")
-    p2, salt = hash_password(p1)
-    print(f"Hashed password: {p2}\nSalt: {salt}")
-
-    print("Print users")
-    USERS.add_user(User('Hello', 1, 2))
-    print(USERS)
+    # print("Print users")
+    # USERS.add_user(User('Hello', 1, 2))
+    # print(USERS)
 
     # Test for password
     # p3 = input("> ")
@@ -166,10 +198,35 @@ def run_tests():
     # print(p3)
 
     # Test for username
-    name = get_valid_user_name()
+    # name = get_valid_user_name()
+
+    # Test for loading users
+    # USERS.load_users()
+    # print(USERS)
+
+    # Test for hashing password
+    # hp, salt = hash_password('Bob')
+    # USERS.add_user(User('Sponge', salt, hp))
+    #
+    # USERS.save_users()
+
+    # Test for acquiring user-names
+    # user_names = [user.user_name for user in USERS.users]
+    # print(user_names)
+
+    # Test for comparing hashed passwords
+    # p1, salt1 = hash_password("Bob")
+    # print(salt1)
+    # salt1.encode('utf-8')
+    # print(salt1)
+    # print(p1)
+    # p2, salt2 = hash_password("Bob")
+    # print(p2)
+    # if p1 == p2:
+    #     print("Yes")
 
 
-run_tests()
+# run_tests()
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()
